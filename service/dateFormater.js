@@ -1,14 +1,14 @@
 module.exports = (data) => {
-  let date = new Date(data * 1000);
-  let monthNames = [
+  const date = new Date(data * 1000);
+  const monthNames = [
     'Jan', 'Feb', 'Mar',
     'Apr', 'May', 'Jun', 'Jul',
     'Aug', 'Sep', 'Oct',
     'Nov', 'Dec'
   ];
 
-  let day = date.getDate();
-  let monthIndex = date.getMonth();
+  const day = date.getDate();
+  const monthIndex = date.getMonth();
 
   return day + monthNames[monthIndex];
 };

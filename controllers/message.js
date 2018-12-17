@@ -1,25 +1,25 @@
 const sendMessage = require('../service/sendMessage');
 const aiService = require('../service/ai');
 
-exports.post_all_messages = (req, res) => {
+exports.post_all_messages = async (req, res) => {
   if (req.body.object === 'page') {
-    req.body.entry.forEach((entry) => {
-      entry.messaging.forEach((event) => {
+    req.body.entry.forEach(async (entry) => {
+      entry.messaging.forEach(async (event) => {
         if (event.message && event.message.text) {
-
-          aiService.request_to_api(event, (data) => {
-
+          try {
+            const aiResponse = await aiService.request_to_api(event);
             const apiAiAnswer = {
               sender: {
-                id: data.senderId
+                id: aiResponse.senderId
               },
               message: {
-                text: data.result.fulfillment.speech
+                text: aiResponse.result.fulfillment.speech
               }
             };
-
             sendMessage(apiAiAnswer);
-          });
+          } catch (err) {
+            console.log(err);
+          }
         }
       });
     });

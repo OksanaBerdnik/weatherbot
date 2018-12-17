@@ -1,22 +1,15 @@
-const apiAiClient = require('apiai')(process.env.API_AI_ACCESS_TOKEN);
+const apiAiClient = require('apiai-promise')(process.env.API_AI_ACCESS_TOKEN);
 
-exports.request_to_api = (data, callback) => {
+exports.request_to_api = async (data) => {
   const senderId = data.sender.id;
   const message = data.message.text;
-
-  const apiAiSession = apiAiClient.textRequest(message, {
-    sessionId: 'baked_wings'
-  });
-
-  apiAiSession.on('response', (res) => {
+  try {
+    const res = await apiAiClient.textRequest(message, {
+      sessionId: 'baked_wings'
+    });
     res.senderId = senderId;
-    console.error('efhbajwfghjafb');
-    callback(res);
-  });
-
-  apiAiSession.on('error', (err) => {
-    console.error(err);
-  });
-
-  apiAiSession.end();
+    return res;
+  } catch (err) {
+    console.log(err);
+  }
 };
