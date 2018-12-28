@@ -2,8 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
-const weatherService = require('../service/weather');
+const routerService = require('../controllers/router');
 
-router.post('/', weatherService);
+router.post('/', routerService);
 
 module.exports = router;
