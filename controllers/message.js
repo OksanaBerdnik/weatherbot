@@ -28,7 +28,7 @@ exports.post_all_messages = async (req, res) => {
             })
             .catch(err => console.error(err));
         } catch (err) {
-          console.log('error');
+          console.error(err);
         }
       }
     });

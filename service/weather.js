@@ -1,13 +1,15 @@
 const axios = require('axios');
 const dateFormater = require('./dateFormater');
 
-const getWeatherPeriodLimit = (period) => {
-  const datePeriod = period.split('/');
-  const startPeriod = new Date(datePeriod[0]).getTime() / 1000;
-  const endPeriod = new Date(datePeriod[1]).getTime() / 1000;
+// const getWeatherPeriodLimit = (period) => {
+//   const datePeriod = period.split('/');
+//   const startPeriod = new Date(datePeriod[0]).getTime() / 1000;
+//   const endPeriod = new Date(datePeriod[1]).getTime() / 1000;
+//
+//   return [startPeriod, endPeriod];
+// };
 
-  return [startPeriod, endPeriod];
-};
+const timeToMSec = time => new Date(time).getTime() / 1000;
 
 const getWeatherPeriod = (start, end) => Math.floor(Math.abs(start - end) / (60 * 60 * 24)) + 1;
 
@@ -35,7 +37,7 @@ const getCityCoordinates = async (city) => {
     const { data: { coord: { lat, lon } } } = res;
     return [lat, lon];
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 };
 
@@ -45,35 +47,35 @@ const requestToWeatherAPI = async (lat, lon, date, period) => {
     const res = await axios.get(weatherAPI);
     return res.data;
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 };
 
 module.exports = async (req, defaultCity) => {
-  const data = req.queryResult;
-
   try {
-    const city = data.parameters['geo-city'] || defaultCity;
-    let date;
-    let period;
-    let startPeriod;
-    let endPeriod;
+    const data = req.queryResult.outputContexts[0] || req.queryResult;
 
-    if (data.parameters.date) {
-      date = new Date(data.parameters.date).getTime() / 1000;
+    let period;
+    let { parameters: { date, 'date-period': { startDate, endDate }, 'geo-city': city } } = data;
+
+    city = city === '' ? defaultCity : city;
+
+    if (date) {
+      date = timeToMSec(date);
     }
 
-    if (data.parameters['date-period']) {
-      [startPeriod, endPeriod] = getWeatherPeriodLimit(data.parameters['date-period']);
-      period = getWeatherPeriod(startPeriod, endPeriod);
+    if (startDate && endDate) {
+      startDate = timeToMSec(startDate);
+      endDate = timeToMSec(endDate);
+      period = getWeatherPeriod(timeToMSec(startDate), timeToMSec(endDate));
     }
 
     const cityCoord = await getCityCoordinates(city);
     const weatherData = await requestToWeatherAPI(...cityCoord, date, period);
-    const weatherMsg = await getWeatherMessage(city, date, startPeriod, endPeriod, period, weatherData);
+    const weatherMsg = await getWeatherMessage(city, date, startDate, endDate, period, weatherData);
 
     return weatherMsg;
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 };

@@ -33,27 +33,33 @@ const getUserCity = async (session) => {
 };
 
 module.exports = async (req, res) => {
-  const userDefaultCity = await getUserCity(req.body.session);
+  try {
+    if (req.body.queryResult.parameters['geo-city'] === '') {
+      const userDefaultCity = await getUserCity(req.body.session);
 
-  if (req.body.queryResult.parameters['geo-city'] === '') {
-    if (!userDefaultCity) {
-      return res.status(200).end();
+      if (!userDefaultCity) {
+        return res.status(200).end();
+      }
+
+      const weatherMsg = await weatherService(req.body, userDefaultCity);
+      return res.status(200).json({
+        fulfillmentText: weatherMsg,
+        source: 'weather'
+      });
     }
 
-    const weatherMsg = await weatherService(req.body, userDefaultCity);
+    if (req.body.queryResult.intent.displayName === 'defaultCity') {
+      createNewUser(req.body)
+        .then(() => console.log('User created'))
+        .catch(err => console.error(err));
+    }
+
+    const weatherMsg = await weatherService(req.body);
     return res.status(200).json({
       fulfillmentText: weatherMsg,
       source: 'weather'
     });
+  } catch (err) {
+    console.error(err);
   }
-
-  if (req.body.queryResult.intent.displayName === 'defaultCity' && !userDefaultCity) {
-    await createNewUser(req.body);
-  }
-
-  const weatherMsg = await weatherService(req.body);
-  return res.status(200).json({
-    fulfillmentText: weatherMsg,
-    source: 'weather'
-  });
 };
