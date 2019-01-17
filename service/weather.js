@@ -53,7 +53,7 @@ const requestToWeatherAPI = async (lat, lon, date, period) => {
 
 module.exports = async (req, defaultCity) => {
   try {
-    const data = req.queryResult.outputContexts[0] || req.queryResult;
+    const data = req.queryResult.outputContexts ? req.queryResult.outputContexts[0] : req.queryResult;
 
     let period;
     let { parameters: { date, 'date-period': { startDate, endDate }, 'geo-city': city } } = data;

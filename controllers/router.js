@@ -1,43 +1,20 @@
-const { User } = require('../models');
-
 const weatherService = require('../service/weather');
+const setupLocation = require('../service/setup_location');
 
-const createNewUser = async (req) => {
-  try {
-    const pos = req.session.indexOf('sessions/');
-    const userId = req.session.slice(pos + 9);
-    const data = await User.create({
-      fbId: userId,
-      defaultGeoCity: req.queryResult.parameters['geo-city']
-    });
-    return data;
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-const getUserCity = async (session) => {
-  try {
-    const pos = session.indexOf('sessions/');
-    const userId = session.slice(pos + 9);
-
-    let data = await User.findOne({ where: { fbId: userId } });
-    if (data) {
-      data = data.get({ plain: true });
-      return data.defaultGeoCity;
-    }
-    return null;
-  } catch (err) {
-    console.error(err);
-  }
-};
+const dbDefaultCity = require('../db/user/user_default_city');
 
 module.exports = async (req, res) => {
   try {
+    const pos = req.body.session.indexOf('sessions/');
+    const userId = req.body.session.slice(pos + 9);
+
     if (req.body.queryResult.parameters['geo-city'] === '') {
-      const userDefaultCity = await getUserCity(req.body.session);
+      const userDefaultCity = await dbDefaultCity.getUserCity(userId);
 
       if (!userDefaultCity) {
+        // console.log(req.body);
+        // const data = await setupLocation.setDefaultCity(userId);
+
         return res.status(200).end();
       }
 
@@ -48,11 +25,6 @@ module.exports = async (req, res) => {
       });
     }
 
-    if (req.body.queryResult.intent.displayName === 'defaultCity') {
-      createNewUser(req.body)
-        .then(() => console.log('User created'))
-        .catch(err => console.error(err));
-    }
 
     const weatherMsg = await weatherService(req.body);
     return res.status(200).json({

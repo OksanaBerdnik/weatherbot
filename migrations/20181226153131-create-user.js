@@ -1,13 +1,4 @@
 module.exports = {
-  // up: (queryInterface, Sequelize) => {
-  //   return queryInterface.changeColumn('Users',
-  //     'defaultGeoCity', {
-  //       type: Sequelize.STRING,
-  //       allowNull: false,
-  //       unique: true
-  //     }
-  //   );
-  // },
   up: (queryInterface, Sequelize) => queryInterface.createTable('Users', {
     id: {
       allowNull: false,
